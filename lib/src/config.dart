@@ -103,10 +103,10 @@ abstract class SerialPortConfig {
   set parity(int value);
 
   /// Gets the stop bits from the port configuration.
-  int get stopBits;
+  double get stopBits;
 
   /// Sets the stop bits in the port configuration.
-  set stopBits(int value);
+  set stopBits(double value);
 
   /// Gets the RTS pin behaviour from the port configuration.
   ///
@@ -227,9 +227,24 @@ class _SerialPortConfigImpl implements SerialPortConfig {
   set parity(int value) => _set(dylib.sp_set_config_parity, value);
 
   @override
-  int get stopBits => _get(dylib.sp_get_config_stopbits);
+  double get stopBits {
+    final intValue = _get(dylib.sp_get_config_stopbits);
+    // Convert int to double (e.g., 1 -> 1.0, 2 -> 2.0, 15 -> 1.5)
+    if (intValue == 15) return 1.5;
+    return intValue.toDouble();
+  }
+
   @override
-  set stopBits(int value) => _set(dylib.sp_set_config_stopbits, value);
+  set stopBits(double value) {
+    // Convert double to int (e.g., 1.0 -> 1, 2.0 -> 2, 1.5 -> 15)
+    int intValue;
+    if (value == 1.5) {
+      intValue = 15;
+    } else {
+      intValue = value.toInt();
+    }
+    _set(dylib.sp_set_config_stopbits, intValue);
+  }
 
   @override
   int get rts => _get32(dylib.sp_get_config_rts);
